@@ -16,6 +16,9 @@ import streamlit as st
 import time
 import re
 import requests
+import zipfile
+import io
+import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -192,7 +195,8 @@ if st.session_state.selected_company and any_selected:
             time.sleep(5)
 
             safe_company_name = re.sub(r"[^\w\-_\. ]", "_", company_display_name)
-            company_dir = Path.home() / "Desktop" / "Company_Data" / safe_company_name
+            temp_base = Path(tempfile.mkdtemp())
+            company_dir = temp_base / safe_company_name
 
             # ============================
             # ANNUAL REPORTS
@@ -549,7 +553,7 @@ if st.session_state.selected_company and any_selected:
                     st.write(msg)
 
             # DONE
-            progress_status.success(f"✅ **Download complete!** Files saved to: `{company_dir}`")
+            progress_status.success(f"✅ **Download complete!** Click the button below to save your files.")
 
         except Exception as e:
             progress_status.error(f"❌ Error: {str(e)}")
@@ -565,3 +569,25 @@ if st.session_state.selected_company and any_selected:
         c1.metric("Downloaded", downloaded_count)
         c2.metric("Skipped", skipped_count)
         c3.metric("Failed", failed_count)
+
+        # AUTO-DOWNLOAD ZIP
+        if downloaded_count > 0 and company_dir.exists():
+            import base64
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                for file_path in sorted(company_dir.rglob("*")):
+                    if file_path.is_file():
+                        arcname = file_path.relative_to(company_dir.parent)
+                        zf.write(file_path, arcname)
+            zip_buffer.seek(0)
+            b64 = base64.b64encode(zip_buffer.read()).decode()
+            zip_filename = f"{safe_company_name}.zip"
+            auto_download_html = f'''
+                <html>
+                <body>
+                <a id="auto_dl" href="data:application/zip;base64,{b64}" download="{zip_filename}"></a>
+                <script>document.getElementById("auto_dl").click();</script>
+                </body>
+                </html>
+            '''
+            st.components.v1.html(auto_download_html, height=0)
