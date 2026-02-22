@@ -238,7 +238,7 @@ if st.session_state.selected_company and any_selected:
                         text = link.text.strip()
                         href = link.get_attribute("href")
                         ym = re.search(r"20\d{2}", text)
-                        if ym and "financial year" in text.lower() and "from bse" in text.lower() and href and href not in seen:
+                        if ym and "financial year" in text.lower() and href and href not in seen:
                             year = int(ym.group())
                             if annual_cutoff_date and datetime(year, 12, 31) < annual_cutoff_date:
                                 continue
