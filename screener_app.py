@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Screener Downloader - Streamlit UI
+Screener Master Pro - Streamlit UI
 Downloads Annual Reports, Credit Ratings, Transcripts, Presentations, and Quarterly Reports
 from Screener.in with a clean web interface.
 
@@ -28,7 +28,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 # ============================================================
 # PAGE CONFIG
 # ============================================================
-st.set_page_config(page_title="Screener Downloader", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Screener Master Pro", page_icon="📈", layout="wide")
 
 
 # ============================================================
@@ -140,7 +140,7 @@ with st.sidebar:
 # ============================================================
 # MAIN AREA
 # ============================================================
-st.title("📈 Screener Downloader")
+st.title("📈 Screener Master Pro")
 
 st.caption("This program retrieves data from Screener.in and is contingent on Screener working. Google Chrome must be installed on your system for this program to work.")
 
@@ -156,7 +156,7 @@ if st.session_state.selected_company and not any_selected:
 # START DOWNLOAD + CLEAN PROGRESS
 # ============================================================
 if st.session_state.selected_company and any_selected:
-    if st.button("🚀 Start Download", type="primary"):
+    if st.button("🚀 Start Master Download", type="primary"):
 
         selected = st.session_state.selected_company
         screener_url = f"https://www.screener.in{selected.get('url', '')}"
@@ -238,7 +238,7 @@ if st.session_state.selected_company and any_selected:
                         text = link.text.strip()
                         href = link.get_attribute("href")
                         ym = re.search(r"20\d{2}", text)
-                        if ym and "financial year" in text.lower() and href and href not in seen:
+                        if ym and "financial year" in text.lower() and "from bse" in text.lower() and href and href not in seen:
                             year = int(ym.group())
                             if annual_cutoff_date and datetime(year, 12, 31) < annual_cutoff_date:
                                 continue
