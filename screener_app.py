@@ -140,7 +140,7 @@ with st.sidebar:
 # ============================================================
 # MAIN AREA
 # ============================================================
-st.title("📈 Screener Master Pro")
+st.title("📈 Screener Downloader")
 
 st.caption("This program retrieves data from Screener.in and is contingent on Screener working. Google Chrome must be installed on your system for this program to work.")
 
@@ -156,7 +156,7 @@ if st.session_state.selected_company and not any_selected:
 # START DOWNLOAD + CLEAN PROGRESS
 # ============================================================
 if st.session_state.selected_company and any_selected:
-    if st.button("🚀 Start Master Download", type="primary"):
+    if st.button("🚀 Start Download", type="primary"):
 
         selected = st.session_state.selected_company
         screener_url = f"https://www.screener.in{selected.get('url', '')}"
