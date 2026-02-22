@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Screener Master Pro - Streamlit UI
+Screener Downloader - Streamlit UI
 Downloads Annual Reports, Credit Ratings, Transcripts, Presentations, and Quarterly Reports
 from Screener.in with a clean web interface.
 
@@ -28,7 +28,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 # ============================================================
 # PAGE CONFIG
 # ============================================================
-st.set_page_config(page_title="Screener Master Pro", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Screener Downloader", page_icon="📈", layout="wide")
 
 
 # ============================================================
