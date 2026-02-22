@@ -8,7 +8,7 @@ Usage:
     streamlit run screener_app.py
 
 Requirements:
-    pip install streamlit selenium webdriver-manager requests
+    pip install streamlit selenium requests
     Google Chrome must be installed.
 """
 
@@ -20,11 +20,9 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 # ============================================================
@@ -178,14 +176,15 @@ if st.session_state.selected_company and any_selected:
 
         try:
             # --- BROWSER SETUP ---
+            # Uses Selenium's built-in selenium-manager to auto-match ChromeDriver
+            # to the installed Chrome version. No webdriver-manager needed.
             chrome_options = Options()
             chrome_options.add_argument("--headless=new")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--window-size=1920,10000")
 
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
+            driver = webdriver.Chrome(options=chrome_options)
             driver.set_page_load_timeout(60)
 
             progress_status.info(f"⏳ **Download in progress** — Loading {company_display_name}...")
