@@ -240,15 +240,19 @@ if st.session_state.selected_company and any_selected:
                 seen = set()
                 for link in all_links:
                     try:
-                        text = link.text.strip()
                         href = link.get_attribute("href")
-                        ym = re.search(r"20\d{2}", text)
-                        if ym and "financial year" in text.lower() and ("from bse" in text.lower() or "from nse" in text.lower()) and href and href not in seen:
-                            year = int(ym.group())
-                            if annual_cutoff_date and datetime(year, 12, 31) < annual_cutoff_date:
-                                continue
-                            annual_reports.append({"year": year, "url": href})
-                            seen.add(href)
+                        if not href or href in seen:
+                            continue
+                        parent = link.find_element(By.XPATH, "..")
+                        parent_text = parent.text.strip().lower()
+                        if "financial year" in parent_text:
+                            ym = re.search(r"20\d{2}", parent_text)
+                            if ym:
+                                year = int(ym.group())
+                                if annual_cutoff_date and datetime(year, 12, 31) < annual_cutoff_date:
+                                    continue
+                                annual_reports.append({"year": year, "url": href})
+                                seen.add(href)
                     except: continue
 
                 annual_reports.sort(key=lambda x: x["year"], reverse=True)
