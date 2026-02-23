@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Screener Master Pro - Streamlit UI
+Master Downloader Pro - Streamlit UI
 Downloads Annual Reports, Credit Ratings, Transcripts, Presentations, and Quarterly Reports
 from Screener.in with a clean web interface.
 
 Usage:
-    streamlit run screener_app.py
+    streamlit run master_downloader_app.py
 
 Requirements:
-    pip install streamlit selenium requests
+    pip install streamlit selenium webdriver-manager requests
     Google Chrome must be installed.
 """
 
@@ -16,22 +16,21 @@ import streamlit as st
 import time
 import re
 import requests
-import zipfile
-import io
-import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
 
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 # ============================================================
 # PAGE CONFIG
 # ============================================================
-st.set_page_config(page_title="Screener Master Pro", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Screener Downloader", page_icon="📈", layout="wide")
 
 
 # ============================================================
@@ -114,7 +113,7 @@ with st.sidebar:
     d_credit = st.checkbox("Credit Ratings", value=True)
     d_transcripts = st.checkbox("Transcripts")
     d_presentations = st.checkbox("Presentations")
-    d_quarterly = st.checkbox("Quarterly Reports")
+    d_quarterly = st.checkbox("Quarterly Results")
 
     st.divider()
 
@@ -143,12 +142,12 @@ with st.sidebar:
 # ============================================================
 # MAIN AREA
 # ============================================================
-st.title("📈 Screener Master Pro")
+st.title("📈 Screener Downloader")
 
 st.caption("This program retrieves data from Screener.in and is contingent on Screener working. Google Chrome must be installed on your system for this program to work.")
 
 if not st.session_state.selected_company:
-    st.info("👈 Search for a company in the sidebar, select it, choose your download options, then click **Start Download** below.")
+    st.info("👈 Search for a company in the sidebar, select it, choose your download options, then click **Start Retrieving** below.")
 
 any_selected = d_annual or d_credit or d_transcripts or d_presentations or d_quarterly
 
@@ -159,7 +158,7 @@ if st.session_state.selected_company and not any_selected:
 # START DOWNLOAD + CLEAN PROGRESS
 # ============================================================
 if st.session_state.selected_company and any_selected:
-    if st.button("🚀 Start Master Download", type="primary"):
+    if st.button("⚡ Start Retrieving", type="primary"):
 
         selected = st.session_state.selected_company
         screener_url = f"https://www.screener.in{selected.get('url', '')}"
@@ -178,16 +177,16 @@ if st.session_state.selected_company and any_selected:
         progress_status.info(f"⏳ **Download in progress** — Setting up browser...")
 
         try:
-            # --- BROWSER SETUP ---
-            # Uses Selenium's built-in selenium-manager to auto-match ChromeDriver
-            # to the installed Chrome version. No webdriver-manager needed.
+            # --- BROWSER SETUP (uses webdriver-manager to auto-match ChromeDriver) ---
             chrome_options = Options()
             chrome_options.add_argument("--headless=new")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--window-size=1920,10000")
+            chrome_options.binary_location = "/usr/bin/chromium-browser"
 
-            driver = webdriver.Chrome(options=chrome_options)
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
             driver.set_page_load_timeout(60)
 
             progress_status.info(f"⏳ **Download in progress** — Loading {company_display_name}...")
@@ -195,8 +194,7 @@ if st.session_state.selected_company and any_selected:
             time.sleep(5)
 
             safe_company_name = re.sub(r"[^\w\-_\. ]", "_", company_display_name)
-            temp_base = Path(tempfile.mkdtemp())
-            company_dir = temp_base / safe_company_name
+            company_dir = Path.home() / "Downloads" / "Company_Data" / safe_company_name
 
             # ============================
             # ANNUAL REPORTS
@@ -242,7 +240,7 @@ if st.session_state.selected_company and any_selected:
                         text = link.text.strip()
                         href = link.get_attribute("href")
                         ym = re.search(r"20\d{2}", text)
-                        if ym and "financial year" in text.lower() and "from" in text.lower() and href and href not in seen:
+                        if ym and "financial year" in text.lower() and ("from bse" in text.lower() or "from nse" in text.lower()) and href and href not in seen:
                             year = int(ym.group())
                             if annual_cutoff_date and datetime(year, 12, 31) < annual_cutoff_date:
                                 continue
@@ -257,6 +255,7 @@ if st.session_state.selected_company and any_selected:
                 section_skip = 0
                 section_fail = 0
                 for idx, rpt in enumerate(annual_reports, 1):
+                    progress_status.info(f"⏳ **Downloading Annual Reports** — {idx}/{len(annual_reports)}")
                     yr = rpt["year"]
                     fp = annual_dir / f"Annual_Report_{yr}.pdf"
                     if fp.exists() and fp.stat().st_size > 5000:
@@ -272,7 +271,7 @@ if st.session_state.selected_company and any_selected:
                     if idx < len(annual_reports): time.sleep(1)
 
                 with results_container:
-                    msg = f"✅ **Annual Reports** — {section_dl} downloaded"
+                    msg = f"✅ **Annual Reports** — {section_dl} files retrieved"
                     if section_skip: msg += f", {section_skip} already existed"
                     if section_fail: msg += f", {section_fail} failed"
                     if not annual_reports: msg = "⊙ **Annual Reports** — none found"
@@ -342,6 +341,7 @@ if st.session_state.selected_company and any_selected:
                 section_skip = 0
                 section_fail = 0
                 for idx, rat in enumerate(ratings, 1):
+                    progress_status.info(f"⏳ **Downloading Credit Ratings** — {idx}/{len(ratings)}")
                     ds = rat["date"].strftime("%Y-%m-%d")
                     ag = rat["agency"].upper()
                     fp = ratings_dir / f"Credit_Rating_{ds}_{ag}.pdf"
@@ -358,7 +358,7 @@ if st.session_state.selected_company and any_selected:
                     if idx < len(ratings): time.sleep(1)
 
                 with results_container:
-                    msg = f"✅ **Credit Ratings** — {section_dl} downloaded"
+                    msg = f"✅ **Credit Ratings** — {section_dl} files retrieved"
                     if section_skip: msg += f", {section_skip} already existed"
                     if section_fail: msg += f", {section_fail} failed"
                     if not ratings: msg = "⊙ **Credit Ratings** — none found"
@@ -381,7 +381,8 @@ if st.session_state.selected_company and any_selected:
                 try:
                     driver.execute_script("window.scrollBy(0, 300);")
                     time.sleep(2)
-                    for btn in driver.find_elements(By.CSS_SELECTOR, "button.show-more-button"):
+                    all_buttons = driver.find_elements(By.CSS_SELECTOR, "button.show-more-button")
+                    for btn in all_buttons:
                         try:
                             par = btn.find_element(By.XPATH, "../..")
                             if "concall" in par.text.lower():
@@ -445,6 +446,7 @@ if st.session_state.selected_company and any_selected:
                 p_dl = 0; p_skip = 0; p_fail = 0
 
                 for idx, dk in enumerate(sorted_dates, 1):
+                    progress_status.info(f"⏳ **Downloading Transcripts & Presentations** — {idx}/{len(sorted_dates)}")
                     d = concalls_data[dk]
 
                     if d_transcripts and d["transcript"]:
@@ -471,24 +473,24 @@ if st.session_state.selected_company and any_selected:
 
                 with results_container:
                     if d_transcripts:
-                        msg = f"✅ **Transcripts** — {t_dl} downloaded"
+                        msg = f"✅ **Transcripts** — {t_dl} files retrieved"
                         if t_skip: msg += f", {t_skip} already existed"
                         if t_fail: msg += f", {t_fail} failed"
                         if not sorted_dates: msg = "⊙ **Transcripts** — none found"
                         st.write(msg)
 
                     if d_presentations:
-                        msg = f"✅ **Presentations** — {p_dl} downloaded"
+                        msg = f"✅ **Presentations** — {p_dl} files retrieved"
                         if p_skip: msg += f", {p_skip} already existed"
                         if p_fail: msg += f", {p_fail} failed"
                         if not sorted_dates: msg = "⊙ **Presentations** — none found"
                         st.write(msg)
 
             # ============================
-            # QUARTERLY REPORTS
+            # QUARTERLY RESULTS
             # ============================
             if d_quarterly:
-                progress_status.info("⏳ **Download in progress** — Processing Quarterly Reports...")
+                progress_status.info("⏳ **Download in progress** — Scanning for Quarterly Results...")
 
                 try:
                     h = driver.find_element(By.XPATH, "//h2[contains(text(), 'Quarterly Results')]")
@@ -530,12 +532,13 @@ if st.session_state.selected_company and any_selected:
                 if num_quarterly and num_quarterly > 0:
                     qr = qr[:num_quarterly]
 
-                q_dir = company_dir / "Quarterly_Reports"
+                q_dir = company_dir / "Quarterly_Results"
                 section_dl = 0
                 section_skip = 0
                 section_fail = 0
                 for idx, rpt in enumerate(qr, 1):
-                    fp = q_dir / f"Quarterly_Report_{rpt['date_str']}.pdf"
+                    progress_status.info(f"⏳ **Downloading Quarterly Results** — {idx}/{len(qr)}")
+                    fp = q_dir / f"Quarterly_Result_{rpt['date_str']}.pdf"
                     if fp.exists() and fp.stat().st_size > 5000:
                         section_skip += 1; skipped_count += 1
                     else:
@@ -546,14 +549,14 @@ if st.session_state.selected_company and any_selected:
                     if idx < len(qr): time.sleep(1)
 
                 with results_container:
-                    msg = f"✅ **Quarterly Reports** — {section_dl} downloaded"
+                    msg = f"✅ **Quarterly Results** — {section_dl} files retrieved"
                     if section_skip: msg += f", {section_skip} already existed"
                     if section_fail: msg += f", {section_fail} failed"
-                    if not qr: msg = "⊙ **Quarterly Reports** — none found"
+                    if not qr: msg = "⊙ **Quarterly Results** — none found"
                     st.write(msg)
 
             # DONE
-            progress_status.success(f"✅ **Download complete!** Click the button below to save your files.")
+            progress_status.success(f"✅ **Files Retrieved!**")
 
         except Exception as e:
             progress_status.error(f"❌ Error: {str(e)}")
@@ -564,30 +567,11 @@ if st.session_state.selected_company and any_selected:
 
         # SUMMARY
         st.divider()
-        st.markdown("### 📊 Download Summary")
+        st.markdown("### 📊 Retrieval Summary")
         c1, c2, c3 = st.columns(3)
-        c1.metric("Downloaded", downloaded_count)
+        c1.metric("Retrieved to Server", downloaded_count)
         c2.metric("Skipped", skipped_count)
         c3.metric("Failed", failed_count)
 
-        # AUTO-DOWNLOAD ZIP
-        if downloaded_count > 0 and company_dir.exists():
-            import base64
-            zip_buffer = io.BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-                for file_path in sorted(company_dir.rglob("*")):
-                    if file_path.is_file():
-                        arcname = file_path.relative_to(company_dir.parent)
-                        zf.write(file_path, arcname)
-            zip_buffer.seek(0)
-            b64 = base64.b64encode(zip_buffer.read()).decode()
-            zip_filename = f"{safe_company_name}.zip"
-            auto_download_html = f'''
-                <html>
-                <body>
-                <a id="auto_dl" href="data:application/zip;base64,{b64}" download="{zip_filename}"></a>
-                <script>document.getElementById("auto_dl").click();</script>
-                </body>
-                </html>
-            '''
-            st.components.v1.html(auto_download_html, height=0)
+        st.divider()
+        st.button("📥 Download Files", type="primary")
