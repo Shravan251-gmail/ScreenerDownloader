@@ -242,17 +242,11 @@ if st.session_state.selected_company and any_selected:
                 for link in all_links:
                     try:
                         text = link.text.strip()
-                        href = link.get_attribute("href") or ""
+                        href = link.get_attribute("href")
                         ym = re.search(r"20\d{2}", text)
-                        is_text_match = ym and "financial year" in text.lower() and ("from bse" in text.lower() or "from nse" in text.lower()) and href
-                        is_href_match = ("bseindia.com" in href or "nseindia" in href) and href
-                        if (is_text_match or is_href_match) and href not in seen:
-                            if is_text_match:
-                                year = int(ym.group())
-                            else:
-                                ym2 = re.search(r"20\d{2}", href)
-                                year = int(ym2.group()) if ym2 else 0
-                            if annual_cutoff_date and year and datetime(year, 12, 31) < annual_cutoff_date:
+                        if ym and "financial year" in text.lower() and ("from bse" in text.lower() or "from nse" in text.lower()) and href and href not in seen:
+                            year = int(ym.group())
+                            if annual_cutoff_date and datetime(year, 12, 31) < annual_cutoff_date:
                                 continue
                             annual_reports.append({"year": year, "url": href})
                             seen.add(href)
