@@ -16,6 +16,8 @@ import streamlit as st
 import time
 import re
 import requests
+import zipfile
+import io
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -571,4 +573,21 @@ if st.session_state.selected_company and any_selected:
         c3.metric("Failed", failed_count)
 
         st.divider()
-        st.button("📥 Download Files", type="primary")
+
+        # Build ZIP from company_dir and offer download
+        if company_dir.exists():
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                for file in company_dir.rglob("*"):
+                    if file.is_file():
+                        zf.write(file, file.relative_to(company_dir.parent))
+            zip_buffer.seek(0)
+            st.download_button(
+                label="📥 Download Files",
+                data=zip_buffer,
+                file_name=f"{safe_company_name}.zip",
+                mime="application/zip",
+                type="primary"
+            )
+        else:
+            st.button("📥 Download Files", type="primary", disabled=True)
