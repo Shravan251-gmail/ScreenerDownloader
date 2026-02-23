@@ -194,10 +194,12 @@ if st.session_state.selected_company and any_selected:
 
             safe_company_name = re.sub(r"[^\w\-_\. ]", "_", company_display_name)
             company_dir = Path.home() / "Downloads" / "Company_Data" / safe_company_name
-            company_dir.mkdir(parents=True, exist_ok=True)
 
-            # Take screenshot of initial page load
-            driver.save_screenshot(str(company_dir / "screenshot_initial.png"))
+            # Clear previous data for clean run
+            if company_dir.exists():
+                import shutil
+                shutil.rmtree(company_dir)
+            company_dir.mkdir(parents=True, exist_ok=True)
 
             # ============================
             # ANNUAL REPORTS
@@ -230,9 +232,6 @@ if st.session_state.selected_company and any_selected:
                     """)
                     time.sleep(3)
                 except: pass
-
-                # Screenshot after expansion
-                driver.save_screenshot(str(company_dir / "screenshot_after_expansion.png"))
 
                 time.sleep(3)
 
