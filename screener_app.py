@@ -26,7 +26,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 # ============================================================
@@ -170,6 +169,8 @@ if st.session_state.selected_company and any_selected:
         skipped_count = 0
         failed_count = 0
         driver = None
+        company_dir = None
+        safe_company_name = re.sub(r"[^\w\-_\. ]", "_", company_display_name)
 
         # A single status line that updates in place
         progress_status = st.empty()
@@ -187,7 +188,7 @@ if st.session_state.selected_company and any_selected:
             chrome_options.add_argument("--window-size=1920,10000")
             chrome_options.binary_location = "/usr/bin/chromium"
 
-            service = Service(ChromeDriverManager().install())
+            service = Service("/usr/bin/chromedriver")
             driver = webdriver.Chrome(service=service, options=chrome_options)
             driver.set_page_load_timeout(60)
 
@@ -571,7 +572,7 @@ if st.session_state.selected_company and any_selected:
         st.divider()
 
         # Build ZIP from company_dir and offer download
-        if company_dir.exists():
+        if company_dir and company_dir.exists():
             zip_buffer = io.BytesIO()
             with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
                 for file in company_dir.rglob("*"):
