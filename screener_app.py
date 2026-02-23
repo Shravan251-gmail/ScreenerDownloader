@@ -209,27 +209,25 @@ if st.session_state.selected_company and any_selected:
                     time.sleep(3)
                 except: pass
 
-                if num_annual == 0 or num_annual > 5:
-                    try:
-                        sec = driver.find_element(By.XPATH, "//h3[contains(text(), 'Annual reports')]/parent::div")
-                        smb = sec.find_element(By.CSS_SELECTOR, "div.show-more-box")
-                        ico = smb.find_element(By.CSS_SELECTOR, "i.icon-down")
-                        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", ico)
-                        time.sleep(1)
-                        try:
-                            ActionChains(driver).move_to_element(ico).perform()
-                            time.sleep(0.5)
-                        except: pass
-                        try: ico.click()
-                        except: driver.execute_script("arguments[0].click();", ico)
-                        time.sleep(3)
-                        for _ in range(10):
-                            driver.execute_script("window.scrollBy(0, 100);")
-                            time.sleep(0.3)
-                        time.sleep(1)
-                    except: pass
+                # Force expand using JavaScript to reveal all hidden reports
+                try:
+                    driver.execute_script("""
+                        var boxes = document.querySelectorAll('div.show-more-box');
+                        boxes.forEach(function(box) {
+                            box.style.maxHeight = 'none';
+                            box.style.overflow = 'visible';
+                            box.style.display = 'block';
+                            var items = box.querySelectorAll('li, div, a');
+                            items.forEach(function(item) {
+                                item.style.display = '';
+                                item.style.visibility = 'visible';
+                            });
+                        });
+                    """)
+                    time.sleep(3)
+                except: pass
 
-                time.sleep(2)
+                time.sleep(3)
 
                 all_links = driver.find_elements(By.TAG_NAME, "a")
                 annual_reports = []
@@ -289,26 +287,25 @@ if st.session_state.selected_company and any_selected:
                     time.sleep(3)
                 except: pass
 
+                # Force expand using JavaScript to reveal all hidden ratings
                 try:
-                    sec = driver.find_element(By.XPATH, "//h3[contains(text(), 'Credit ratings')]/parent::div")
-                    smb = sec.find_element(By.CSS_SELECTOR, "div.show-more-box")
-                    ico = smb.find_element(By.CSS_SELECTOR, "i.icon-down")
-                    driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", ico)
-                    time.sleep(1)
-                    try:
-                        ActionChains(driver).move_to_element(ico).perform()
-                        time.sleep(0.5)
-                    except: pass
-                    try: ico.click()
-                    except: driver.execute_script("arguments[0].click();", ico)
+                    driver.execute_script("""
+                        var boxes = document.querySelectorAll('div.show-more-box');
+                        boxes.forEach(function(box) {
+                            box.style.maxHeight = 'none';
+                            box.style.overflow = 'visible';
+                            box.style.display = 'block';
+                            var items = box.querySelectorAll('li, div, a');
+                            items.forEach(function(item) {
+                                item.style.display = '';
+                                item.style.visibility = 'visible';
+                            });
+                        });
+                    """)
                     time.sleep(3)
-                    for _ in range(10):
-                        driver.execute_script("window.scrollBy(0, 100);")
-                        time.sleep(0.3)
-                    time.sleep(1)
                 except: pass
 
-                time.sleep(2)
+                time.sleep(3)
 
                 all_links = driver.find_elements(By.TAG_NAME, "a")
                 ratings = []
