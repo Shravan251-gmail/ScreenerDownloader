@@ -270,11 +270,10 @@ if st.session_state.selected_company and any_selected:
                     if idx < len(annual_reports): time.sleep(1)
 
                 with results_container:
-                    msg = f"✅ **Annual Reports** — {section_dl} files retrieved"
-                    if section_skip: msg += f", {section_skip} already existed"
-                    if section_fail: msg += f", {section_fail} failed"
-                    if not annual_reports: msg = "⊙ **Annual Reports** — none found"
-                    st.write(msg)
+                    if annual_reports:
+                        st.write("✅ **Annual Reports**")
+                    else:
+                        st.write("⊙ **Annual Reports** — none found")
 
             # ============================
             # CREDIT RATINGS
@@ -357,11 +356,10 @@ if st.session_state.selected_company and any_selected:
                     if idx < len(ratings): time.sleep(1)
 
                 with results_container:
-                    msg = f"✅ **Credit Ratings** — {section_dl} files retrieved"
-                    if section_skip: msg += f", {section_skip} already existed"
-                    if section_fail: msg += f", {section_fail} failed"
-                    if not ratings: msg = "⊙ **Credit Ratings** — none found"
-                    st.write(msg)
+                    if ratings:
+                        st.write("✅ **Credit Ratings**")
+                    else:
+                        st.write("⊙ **Credit Ratings** — none found")
 
             # ============================
             # TRANSCRIPTS & PRESENTATIONS
@@ -472,18 +470,15 @@ if st.session_state.selected_company and any_selected:
 
                 with results_container:
                     if d_transcripts:
-                        msg = f"✅ **Transcripts** — {t_dl} files retrieved"
-                        if t_skip: msg += f", {t_skip} already existed"
-                        if t_fail: msg += f", {t_fail} failed"
-                        if not sorted_dates: msg = "⊙ **Transcripts** — none found"
-                        st.write(msg)
-
+                        if sorted_dates:
+                            st.write("✅ **Transcripts**")
+                        else:
+                            st.write("⊙ **Transcripts** — none found")
                     if d_presentations:
-                        msg = f"✅ **Presentations** — {p_dl} files retrieved"
-                        if p_skip: msg += f", {p_skip} already existed"
-                        if p_fail: msg += f", {p_fail} failed"
-                        if not sorted_dates: msg = "⊙ **Presentations** — none found"
-                        st.write(msg)
+                        if sorted_dates:
+                            st.write("✅ **Presentations**")
+                        else:
+                            st.write("⊙ **Presentations** — none found")
 
             # ============================
             # QUARTERLY RESULTS
@@ -548,11 +543,10 @@ if st.session_state.selected_company and any_selected:
                     if idx < len(qr): time.sleep(1)
 
                 with results_container:
-                    msg = f"✅ **Quarterly Results** — {section_dl} files retrieved"
-                    if section_skip: msg += f", {section_skip} already existed"
-                    if section_fail: msg += f", {section_fail} failed"
-                    if not qr: msg = "⊙ **Quarterly Results** — none found"
-                    st.write(msg)
+                    if qr:
+                        st.write("✅ **Quarterly Results**")
+                    else:
+                        st.write("⊙ **Quarterly Results** — none found")
 
             # DONE
             progress_status.success(f"✅ **Files Retrieved!**")
@@ -563,14 +557,6 @@ if st.session_state.selected_company and any_selected:
             if driver:
                 try: driver.quit()
                 except: pass
-
-        # SUMMARY
-        st.divider()
-        st.markdown("### 📊 Retrieval Summary")
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Retrieved to Server", downloaded_count)
-        c2.metric("Skipped", skipped_count)
-        c3.metric("Failed", failed_count)
 
         st.divider()
 
