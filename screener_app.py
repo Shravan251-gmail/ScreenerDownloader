@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Screener Downloader - Streamlit UI
+Master Downloader Pro - Streamlit UI
 Downloads Annual Reports, Credit Ratings, Transcripts, Presentations, and Quarterly Reports
 from Screener.in with a clean web interface.
 
@@ -20,11 +20,9 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 # ============================================================
@@ -185,8 +183,7 @@ if st.session_state.selected_company and any_selected:
             chrome_options.add_argument("--window-size=1920,10000")
             chrome_options.binary_location = "/usr/bin/chromium"
 
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
+            driver = webdriver.Chrome(options=chrome_options)
             driver.set_page_load_timeout(60)
 
             progress_status.info(f"⏳ **Download in progress** — Loading {company_display_name}...")
